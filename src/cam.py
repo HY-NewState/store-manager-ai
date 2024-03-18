@@ -1,5 +1,6 @@
 import cv2 as cv
 from datetime import datetime
+from src.yolo import checkPerson
 
 def Cam():
     cap = cv.VideoCapture(0)
@@ -13,10 +14,9 @@ def Cam():
             break
 
         cv.imshow('PC_camera', img)
-        if cv.waitKey(1) == ord('c'):
+        if checkPerson(img):
             cv.imwrite('imgs/{}.png'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), img)
-        if cv.waitKey(1) == ord('q'):
-            break
+        cv.waitKey(1)
 
     cap.release()
     cv.destroyAllWindows()

@@ -1,3 +1,3 @@
-from src.utils.cam import Cam
+from src.cam import Cam
 
 Cam()
