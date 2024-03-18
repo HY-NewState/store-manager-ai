@@ -6,7 +6,7 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 def checkPerson(img):
     global prevPerson
     results = model(img)
-    print(results.pandas().xyxy[0])
+    # print(results.pandas().xyxy[0])
     if ('person' in results.pandas().xyxy[0]['name'].values):
         prevPerson = True
     elif (prevPerson):
@@ -14,3 +14,7 @@ def checkPerson(img):
         return True
     
     return False
+
+def checkThings(img):
+    results = model(img)
+    return results.pandas().xyxy[0].to_json(orient="records")
