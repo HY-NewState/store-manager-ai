@@ -1,4 +1,4 @@
 /imgs
-.DS_Store
 /src/__pycache__
 yolov5s.pt
+.DS_Store
