@@ -1,7 +1,9 @@
-import cv2 as cv
-from datetime import datetime
-from src.yolo import checkPerson, checkThings
 import json
+from datetime import datetime
+
+import cv2 as cv
+
+from src.yolo import checkPerson, checkThings
 
 cap = cv.VideoCapture(0)
 
