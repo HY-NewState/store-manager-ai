@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 import cv2 as cv
+import numpy as np
 
 from src.yolo import checkPerson, checkThings
 
@@ -19,7 +20,12 @@ while True:
     cv.imshow('PC_camera', img)
     if checkPerson(img):
         # cv.imwrite('imgs/{}.png'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), img)
-        result = checkThings(img)
+
+        # RGB타입으로 변환
+        img_np = np.array(img)
+        frame = cv.cvtColor(img_np, cv.COLOR_RGB2BGR)
+        
+        result = checkThings(frame)
         resultObj = json.loads(result)
         serverJson = []
         if (not result):
