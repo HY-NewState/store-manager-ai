@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 import cv2 as cv
+import requests
 import numpy as np
 
 from src.yolo import checkPerson, checkThings
@@ -35,6 +36,7 @@ while True:
                 serverJson.append(item['name'])
             
             print(json.dumps(serverJson))
+            requests.post("http://localhost:3000/test", json=serverJson)
                 
         
     cv.waitKey(1)
