@@ -1,59 +1,53 @@
-import json
-from datetime import datetime
-
 import cv2 as cv
-import requests
 import numpy as np
+import requests
+from src.yolo import YOLO
+import json
 
-from src.yolo import checkPerson, checkThings
+def main():
+    yolo = YOLO()
 
-cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(0)
+    if not cap.isOpened():
+        print("Camera open failed")
+        return
 
-if not cap.isOpened():
-    print("camera open failed")
-    exit()
-while True:
-    ret, img = cap.read()
-    h, w, c = img.shape
-    crop_img = img[0:h,w//3:w*2//3]
-    if not ret:
-        print("Can't read camera")
-        break
+    while True:
+        ret, img = cap.read()
 
-    cv.imshow('PC_camera', crop_img)
-    if checkPerson(crop_img):
-        # cv.imwrite('imgs/{}.png'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), img)
+        if not ret:
+            print("Can't read camera")
+            break
 
-        # RGB타입으로 변환
-        img_np = np.array(crop_img)
-        frame = cv.cvtColor(img_np, cv.COLOR_RGB2BGR)
-        
-        result = checkThings(frame)
-        resultObj = json.loads(result)
-        serverJson = []
-        if (not result):
-            print("No objects detected")
-        else:
-            for item in resultObj:
-                serverJson.append(item['name'])
-            
-            print(json.dumps(serverJson))
-            try:
-                response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
-                print(response)
-            except requests.exceptions.Timeout as errd:
-                print("Timeout Error : ", errd)
-                
-            except requests.exceptions.ConnectionError as errc:
-                print("Error Connecting : ", errc)
-                
-            except requests.exceptions.HTTPError as errb:
-                print("Http Error : ", errb)
+        cv.imshow('PC_camera', img)
 
-            # Any Error except upper exception
-            except requests.exceptions.RequestException as erra:
-                print("AnyException : ", erra)
-    cv.waitKey(1)
+        if yolo.check_person(img):
+            img_np = np.array(img)
+            frame = cv.cvtColor(img_np, cv.COLOR_BGR2RGB)
 
-cap.release()
-cv.destroyAllWindows()
+            result = yolo.check_things(frame)
+            resultObj = json.loads(result)
+            serverJson = []
+
+            if not result:
+                print("No objects detected")
+            else:
+                for item in resultObj:
+                    serverJson.append(item['name'])
+
+                print(serverJson)
+
+                try:
+                    response = requests.post(url="http://192.168.0.3:3000/test", json=serverJson, timeout=1)
+                    print(response)
+                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                    print("Error:", err)
+
+        if cv.waitKey(1) == ord('q'):
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()
