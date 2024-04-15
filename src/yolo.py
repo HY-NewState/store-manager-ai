@@ -3,7 +3,6 @@ import torch
 
 class YOLO:
     def __init__(self):
-        self.prev_person = False
         self.person_model = self.load_person_model()
         self.yolo_model = self.load_yolo_model()
 
@@ -19,15 +18,7 @@ class YOLO:
 
     def check_person(self, img):
         results = self.person_model(img)
-        current_person = 'person' in results.pandas().xyxy[0]['name'].values
-        
-        if current_person:
-            self.prev_person = True
-            return False
-        
-        if not current_person and self.prev_person:
-            self.prev_person = False
-            return True
+        return 'person' in results.pandas().xyxy[0]['name'].values
 
     def check_things(self, img):
         results = self.yolo_model(img)

@@ -6,6 +6,10 @@ import json
 
 def main():
     yolo = YOLO()
+    prevPerson = False
+    curPerson = False
+    isOpen = False
+    didSendAlert = False
 
     cap = cv.VideoCapture(0)
     if not cap.isOpened():
@@ -21,7 +25,26 @@ def main():
 
         cv.imshow('PC_camera', img)
 
-        if yolo.check_person(img):
+        curPerson = yolo.check_person(img)
+
+        if (not prevPerson and curPerson):
+            try:
+                response = requests.get(url="http://192.168.0.14:3000/onoff", timeout=1)
+                isOpen = response.json()
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                    print("Error:", err)
+                    
+        # 매장 운영 OFF
+        if (not isOpen and curPerson and not didSendAlert):
+            didSendAlert = True
+            try:
+                response = requests.post(url="http://192.168.0.14:3000/people", json={"alert": "alert"}, timeout=1)
+                print("매장 침입 알람 전송 성공")
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                print("Error:", err)
+        # 매장 운영 ON
+        if (isOpen and prevPerson and not curPerson):
+            didSendAlert = False
             img_np = np.array(img)
             frame = cv.cvtColor(img_np, cv.COLOR_BGR2RGB)
 
@@ -38,10 +61,12 @@ def main():
                 print(serverJson)
 
                 try:
-                    response = requests.post(url="http://192.168.0.3:3000/test", json=serverJson, timeout=1)
+                    response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
                     print(response)
                 except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
                     print("Error:", err)
+            
+        prevPerson = curPerson
 
         if cv.waitKey(1) == ord('q'):
             break
