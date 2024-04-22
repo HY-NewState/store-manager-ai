@@ -59,12 +59,13 @@ def main():
                     serverJson.append(item['name'])
 
                 print(serverJson)
-
-                try:
-                    response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
-                    print(response)
-                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
-                    print("Error:", err)
+                
+                if (len(serverJson) > 0):
+                    try:
+                        response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
+                        print(response)
+                    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                        print("Error:", err)
             
         prevPerson = curPerson
 
