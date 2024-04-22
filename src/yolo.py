@@ -13,6 +13,7 @@ class YOLO:
         temp = pathlib.WindowsPath
         pathlib.WindowsPath = pathlib.PosixPath
         model = torch.hub.load('yolov5', 'custom', path='model/best.pt', source='local')
+        model.conf = 0.5
         pathlib.WindowsPath = temp
         return model
 

@@ -30,7 +30,7 @@ def main():
 
         if (not prevPerson and curPerson):
             try:
-                response = requests.get(url="http://192.168.0.14:3000/onoff", timeout=1)
+                response = requests.get(url="http://localhost:3000/onoff", timeout=1)
                 isOpen = response.json()
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
                     print("Error:", err)
@@ -39,7 +39,7 @@ def main():
         if (not isOpen and curPerson and not didSendAlert):
             didSendAlert = True
             try:
-                response = requests.post(url="http://192.168.0.14:3000/people", json={"alert": "alert"}, timeout=1)
+                response = requests.post(url="http://localhost:3000/people", json={"alert": "alert"}, timeout=1)
                 print("매장 침입 알람 전송 성공")
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
                 print("Error:", err)
@@ -55,7 +55,7 @@ def main():
     cap.release()
     cv.destroyAllWindows()
     
-@debounce(1.0)  # 1초 동안의 debounce 시간 설정
+@debounce(2.5)  # 1초 동안의 debounce 시간 설정
 def process_image(img, yolo):
     img_np = np.array(img)
     frame = cv.cvtColor(img_np, cv.COLOR_BGR2RGB)
@@ -66,7 +66,7 @@ def process_image(img, yolo):
         print(serverJson)
         if serverJson:
             try:
-                response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
+                response = requests.post(url="http://localhost:3000/test", json=serverJson, timeout=1)
                 print(response)
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
                 print("Error:", err)
