@@ -3,6 +3,7 @@ import numpy as np
 import requests
 from src.yolo import YOLO
 import json
+from src.debounce import debounce
 
 def main():
     yolo = YOLO()
@@ -44,28 +45,7 @@ def main():
                 print("Error:", err)
         # 매장 운영 ON
         if (isOpen and prevPerson and not curPerson):
-            didSendAlert = False
-            img_np = np.array(img)
-            frame = cv.cvtColor(img_np, cv.COLOR_BGR2RGB)
-
-            result = yolo.check_things(frame)
-            resultObj = json.loads(result)
-            serverJson = []
-
-            if not result:
-                print("No objects detected")
-            else:
-                for item in resultObj:
-                    serverJson.append(item['name'])
-
-                print(serverJson)
-                
-                if (len(serverJson) > 0):
-                    try:
-                        response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
-                        print(response)
-                    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
-                        print("Error:", err)
+            process_image(img, yolo)  # Debounced function call
             
         prevPerson = curPerson
 
@@ -74,6 +54,24 @@ def main():
 
     cap.release()
     cv.destroyAllWindows()
+    
+@debounce(1.0)  # 1초 동안의 debounce 시간 설정
+def process_image(img, yolo):
+    img_np = np.array(img)
+    frame = cv.cvtColor(img_np, cv.COLOR_BGR2RGB)
+    result = yolo.check_things(frame)
+    if result:
+        resultObj = json.loads(result)
+        serverJson = [item['name'] for item in resultObj]
+        print(serverJson)
+        if serverJson:
+            try:
+                response = requests.post(url="http://192.168.0.14:3000/test", json=serverJson, timeout=1)
+                print(response)
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                print("Error:", err)
+    else:
+        print("No objects detected")
 
 if __name__ == "__main__":
     main()
